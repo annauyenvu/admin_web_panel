@@ -1,3 +1,4 @@
+import 'package:admin_web_panel/pages/dispatch_page.dart';
 import 'package:admin_web_panel/pages/drivers_page.dart';
 import 'package:admin_web_panel/pages/trips_page.dart';
 import 'package:admin_web_panel/pages/users_page.dart';
@@ -35,6 +36,10 @@ class _SideNavigationDrawerState extends State<SideNavigationDrawer> {
           chosenScreen = TripsPage();
         });
         break;
+      case DispatchPage.id:
+        setState(() {
+          chosenScreen = DispatchPage();
+        });
     }
   }
 
@@ -43,7 +48,7 @@ class _SideNavigationDrawerState extends State<SideNavigationDrawer> {
     return AdminScaffold(
       backgroundColor: Color.fromRGBO(255, 255, 255, 1),
       appBar: AppBar(
-        backgroundColor: Colors.pinkAccent.shade700,
+        backgroundColor: Colors.lightBlue.shade700,
         title: const Text(
             "Taxi Dispatch",
           style: TextStyle(
@@ -69,6 +74,11 @@ class _SideNavigationDrawerState extends State<SideNavigationDrawer> {
             route: TripsPage.id,
             icon: CupertinoIcons.location_fill,
           ),
+          AdminMenuItem(
+            title: "Dispatch",
+            route: DispatchPage.id,
+            icon: CupertinoIcons.add,
+          ),
         ],
         selectedRoute: DriversPage.id,
         onSelected: (selectedPage) {
@@ -77,7 +87,7 @@ class _SideNavigationDrawerState extends State<SideNavigationDrawer> {
         header: Container(
           height: 52,
           width: double.infinity,
-          color: Colors.pink.shade500,
+          color: Colors.lightBlueAccent,
           child: const Row(
             children: [
               Icon(
@@ -95,7 +105,7 @@ class _SideNavigationDrawerState extends State<SideNavigationDrawer> {
         footer: Container(
           height: 52,
           width: double.infinity,
-          color: Colors.pink.shade500,
+          color: Colors.lightBlueAccent,
           child: const Row(
             children: [
               Icon(

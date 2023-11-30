@@ -8,7 +8,7 @@ class CommonMethods
       child: Container(
         decoration: BoxDecoration(
           border: Border.all(color: Colors.black),
-          color: Colors.pink.shade500,
+          color: Colors.lightBlue.shade700,
         ),
         child: Padding(
           padding: const EdgeInsets.all(10.0),

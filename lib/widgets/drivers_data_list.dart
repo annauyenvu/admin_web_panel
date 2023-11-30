@@ -32,7 +32,7 @@ class _DriversDataListState extends State<DriversDataList>
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 24,
-                color: Colors.pink,
+                color: Colors.blueAccent,
               ),
             ),
           );

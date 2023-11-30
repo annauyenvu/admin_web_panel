@@ -39,6 +39,14 @@ dependencies:
   firebase_core:
   firebase_database:
   url_launcher:
+  firebase_storage:
+  cloud_firestore:
+  http:
+  provider:
+  geolocator:
+  flutter_geofire:
+
+
 
 dev_dependencies:
   flutter_test:

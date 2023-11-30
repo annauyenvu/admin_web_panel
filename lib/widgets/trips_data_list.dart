@@ -48,7 +48,7 @@ class _TripsDataListState extends State<TripsDataList>
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 24,
-                color: Colors.pink,
+                color: Colors.blueAccent,
               ),
             ),
           );
