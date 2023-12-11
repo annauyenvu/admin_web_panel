@@ -22,8 +22,10 @@ class DispatchPage extends StatefulWidget {
 class _DispatchPageState extends State<DispatchPage> {
 //reusable widget for rows
 
+  final DatabaseReference onlineDriversRef = FirebaseDatabase.instance.ref().child("onlineDrivers");
   List<OnlineNearbyDrivers>? availableNearbyOnlineDriversList;
   DatabaseReference? tripRequestRef;
+  String stateOfApp = "normal";
 
   TextEditingController nameTextEditingController = TextEditingController();
   TextEditingController phoneTextEditingController = TextEditingController();
@@ -31,47 +33,77 @@ class _DispatchPageState extends State<DispatchPage> {
   TextEditingController dropOffTextEditingController = TextEditingController();
   CommonMethods cMethods = CommonMethods();
 
-  // Thêm tham chiếu đến ManageDriversMethods
-  final ManageDriversMethods manageDriversMethods = ManageDriversMethods();
+  Future<void> fetchOnlineDrivers() async {
+    try {
+      DatabaseEvent snapshot = await onlineDriversRef.once();
+      if (snapshot.snapshot.value != null) {
+        Map dataMap = snapshot.snapshot.value as Map;
+        List<OnlineNearbyDrivers> driversList = [];
+
+        dataMap.forEach((key, value) {
+          print('Key: $key, Value: $value');
+          String uidDriver = key;
+          //double latDriver = (value['l']['0'] as num).toDouble();
+          //double lngDriver = (value['l']['1'] as num).toDouble();
+
+          OnlineNearbyDrivers driver = OnlineNearbyDrivers(
+            uidDriver: uidDriver,
+            latDriver: 0,
+            lngDriver: 0,
+          );
+          print(driver);
+          sendNotificationToDriver(driver);
+          //availableNearbyOnlineDriversList = availableNearbyOnlineDriversList ?? []..add(driver);
+        });
+      }
+
+    } catch (error) {
+      print("Error fetching online drivers: $error");
+    }
+  }
 
   makeTripRequest() {
     tripRequestRef = FirebaseDatabase.instance.ref().child('tripRequests').push();
+    var pickUpLocation = pickUpTextEditingController.text;
+    var dropOffDestinationLocation = dropOffTextEditingController.text;
 
     Map dataMap = {
       "tripID": tripRequestRef!.key,
       "publishDataTime": DateTime.now().toString(),
       "userName": nameTextEditingController.text,
       "userPhone": phoneTextEditingController.text,
-      "pickUpAddress": pickUpTextEditingController.text,
-      "dropOffAddress": dropOffTextEditingController.text,
+      "userID": "",
+      "pickUpLatLng": "",
+      "dropOffLatLng": "",
+      "pickUpAddress": pickUpLocation,
+      "dropOffAddress": dropOffDestinationLocation,
+
       "driverID": "waiting",
       "carDetails": "",
       "driverLocation": "",
       "driverName": "",
-      "driverPhone": "",
+      "driverPhone" : "",
       "driverPhoto": "",
       "fareAmount": "",
       "status": "new",
     };
 
     tripRequestRef!.set(dataMap);
-    // Tìm kiếm tài xế
-    searchDriver();
   }
 
-  void noDriverAvailable() {
+  noDriverAvailable() {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (BuildContext context) => InfoDialog(
+      builder: (BuildContext context) =>InfoDialog(
         title: "No Driver Available",
         description: "No Driver found in nearby location, Please try again shortly",
       ),
     );
   }
 
-  void searchDriver() {
-    if(availableNearbyOnlineDriversList!.length == 0) {
+  searchDriver() {
+    if (availableNearbyOnlineDriversList == null || availableNearbyOnlineDriversList!.isEmpty) {
       noDriverAvailable();
       return;
     }
@@ -81,7 +113,7 @@ class _DispatchPageState extends State<DispatchPage> {
     availableNearbyOnlineDriversList!.removeAt(0);
   }
 
-  void sendNotificationToDriver(OnlineNearbyDrivers currentDriver) {
+  sendNotificationToDriver(OnlineNearbyDrivers currentDriver) {
     //update driver's newTripStatus - assign tripID to current driver
     DatabaseReference currentDriverRef = FirebaseDatabase.instance
         .ref()
@@ -113,6 +145,13 @@ class _DispatchPageState extends State<DispatchPage> {
       const oneTickPerSec = Duration(seconds: 1);
       var timerCountDown = Timer.periodic(oneTickPerSec, (timer) {
         requestTimeoutDriver = requestTimeoutDriver -1;
+        //when trip request is not requesting means trip request cancelled - stop timer
+        if(stateOfApp != "requesting") {
+          timer.cancel();
+          currentDriverRef.set("cancelled");
+          currentDriverRef.onDisconnect();
+          requestTimeoutDriver = 20;
+        }
         //when trip request is accepted by online nearest driver
         currentDriverRef.onValue.listen((dataSnapshot) {
           if(dataSnapshot.snapshot.value.toString() == "accepted") {
@@ -127,12 +166,14 @@ class _DispatchPageState extends State<DispatchPage> {
           timer.cancel();
           currentDriverRef.onDisconnect();
           requestTimeoutDriver = 20;
+
           //send notification to next nearest online available driver
           searchDriver();
         }
       });
     });
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -236,9 +277,8 @@ class _DispatchPageState extends State<DispatchPage> {
 
                     ElevatedButton(
                       onPressed: () {
-                        //get nearest available  online drivers
-                        availableNearbyOnlineDriversList = ManageDriversMethods.nearbyOnlineDriversList;
-                        //search driver
+                        //availableNearbyOnlineDriversList = ManageDriversMethods.nearbyOnlineDriversList;
+                        //print(availableNearbyOnlineDriversList);
                         searchDriver();
                       },
                       style: ElevatedButton.styleFrom(
